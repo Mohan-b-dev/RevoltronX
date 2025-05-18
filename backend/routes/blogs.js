@@ -2,7 +2,19 @@ const express = require("express");
 const Blog = require("../models/Blog");
 const router = express.Router();
 
-// Save draft
+router.get("/", async (req, res) => {
+  try {
+    const { status } = req.query;
+    const query = { userId: req.user.userId };
+    if (status) query.status = status;
+    const blogs = await Blog.find(query).sort({ updatedAt: -1 });
+    res.json(blogs);
+  } catch (error) {
+    console.error("Error in GET /blogs:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.post("/draft", async (req, res) => {
   try {
     const { title, content, tags } = req.body;
@@ -20,7 +32,6 @@ router.post("/draft", async (req, res) => {
   }
 });
 
-// Publish blog
 router.post("/publish", async (req, res) => {
   try {
     const { title, content, tags } = req.body;
@@ -38,20 +49,6 @@ router.post("/publish", async (req, res) => {
   }
 });
 
-// Get all blogs
-router.get("/", async (req, res) => {
-  try {
-    const { status } = req.query;
-    const query = { userId: req.user.userId };
-    if (status) query.status = status;
-    const blogs = await Blog.find(query).sort({ updatedAt: -1 });
-    res.json(blogs);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// Get blog by ID
 router.get("/:id", async (req, res) => {
   try {
     const blog = await Blog.findOne({
